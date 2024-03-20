@@ -1,0 +1,111 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{parskip}
+\usepackage{polski}
+\usepackage{hyperref}
+\usepackage{marvosym}
+\usepackage{titlesec}
+\usepackage{float}
+\restylefloat{table}
+
+\titlelabel{\thetitle.\quad}
+\usepackage[left=2cm, right=2cm, top=2cm, bottom=2cm]{geometry}
+\setlength{\parindent}{0pt}
+
+\title{[POP] - tworzenie planu egzaminów - dokumentacja wstępna}
+\author{Piotr Gręda, Szymon Dyszewski}
+\date{Grudzień 2022}
+
+\begin{document}
+
+\maketitle
+
+\section{Opis projektu}
+
+\subsection{Krótki opis zadania:} Celem projektu jest opracowanie programu, który przy pomocy dokładnego wyszukiwania i algorytmu ewolucyjnego wygeneruje plan przeprowadzania egzaminów spełniającego poniższe założenia:
+\begin{itemize}
+    \item Każdy egzamin trwa dokładnie 30 minut.
+    \item Na każdym egzaminie musi znajdować się: Student, Przewodniczący, Opiekun, Członek komisji oraz Recenzent.
+    \item Żaden z uczestników nie może znajdować się jednocześnie na więcej niż jednym egzaminie.
+    \item Każdy egzamin musi być dopasowany do zadeklarowanej dostępności uczestników.
+    \item Wszystkie zaplanowane egzaminy muszą się odbyć.
+    \item Każdy z uczestników poza Przewodniczącym bierze udział w dokładnie jednym egzaminie.
+\end{itemize}
+
+\subsection{Ograniczenia dostępności:}
+\begin{itemize}
+    \item Egzaminy odbywać się mogą od poniedziałku do piątku od godziny 10 do godziny 13.
+    \item Studenci dostępni są cały tydzień z odstępstwem rzędu 4 - 6 slotów czasowych (slot czasowy - 30 minut).
+    \item Przewodniczący dostępny jest przez wszystkie sloty czasowe jednego dnia.
+    \item Opiekun, Członek komisji oraz Recenzent każdego dnia mają do dyspozycji 2 sloty czasowe.
+\end{itemize}
+
+\subsection{Założenia dotyczące ilości osób zaangażowanych:}
+\begin{itemize}
+    \item Studenci - ok. 30
+    \item Przewodniczący - ok. 5
+    \item Opiekuni - ok. 30
+    \item Członkowie komisji - ok. 30
+    \item Recenzenci - ok. 30
+\end{itemize}
+\section{Wykorzystane algorytmy}
+\subsection{Opis}
+Wymagane jest użycie metody dokładnego przeszukiwania oraz algorytmu ewolucyjnego.
+\begin{itemize}
+    \item Kryterium sukcesu - spełnienie wszystkich założeń, które zostały dane nam przez prowadzącego i które zapisane są powyżej.
+    \item Metoda oceny jakości rozwiązania - Jest to liczba egzaminów, których nie udało się przeprowadzić. Taki sposób jej skonstruowania umożliwia poruszanie się wzdłuż gradientu tej funkcji. 
+    \item Aby zwiększyć szanse na "szybkie" znalezienie ekstremum spełniającego wymagania zastosujemy w naszym algorytmie ewolucyjnym selekcję turniejową, skutecznie stawiając na eksplorację. 
+    \item W naszym przypadku populacją jest plan egzaminów, chromosomem osobnika jest zestawienie wszystkich uczestników egzaminu, a genem jest pojedyncza osoba.
+    \item Algorytm ewolucyjny będzie generował nam kolejne pokolenia populacji, krzyżując geny w pojedynczym chromosomie (mieszając uczestników egzaminu). \underline{Mutacja jest niewskazana}, nie możemy pozwalać niektórym pracownikom odpoczywać, ponieważ inni musieliby mieć dwóch studentów, a to zakazane.
+    \item Aby algorytm był kompletnym, to w każdym kroku tworzenia ścieżki będzie on sprawdzał, czy nie została utworzona już ścieżka, która miałaby  mniejszą funkcję kosztów (opierając się na heurystyce).
+\end{itemize}
+\subsection{Przykładowe obliczenia}
+\begin{itemize}
+    \item Selekcja turniejowa:
+\[
+     p_{s}(P_{f}^{t}) = \frac{1}{\mu^{s}}((\mu - i + 1)^{s} - (\mu - i)^{s})
+\]
+Przebieg:
+\begin{itemize}
+    \item Populacja bazowa: osobniki o ocenie 3, 5, 7
+    \item Szranki na 2 osobniki
+    \item Losuję do szranek: osobniki 5 i 7, wygrywa 7 $\rightarrow$ osobniki 3 i 3, wygrywa 3 $\rightarrow$ osobniki 7 i 7, wygrywa 7
+    \item Nasza populacja jest zastępowana przez [7, 3, 7].
+    \item Zastosowanie takiego algorytmu sprzyja eksploracji, istnieje szansa, że po sukcesji do następnej generacji przejdzie punkt, który uchodzi za słabszy (w tym przypadku 3). Taki punkt, daje nam szansę na "odkrycie" nowego, nieoczywistego optimum.
+\end{itemize}
+\item Krzyżowanie:
+\begin{table}[h]
+\centering
+\begin{tabular}{lllll}
+5 & 10 & 3 & 12 & 30
+\end{tabular}
++
+\begin{tabular}{lllll}
+24 & 11 & 9 & 21 & 25
+\end{tabular}
+=
+\begin{tabular}{lllll}
+24 & 11 & 3 & 12 & 30
+\end{tabular}
++
+\begin{tabular}{lllll}
+5 & 10 & 9 & 21 & 25
+\end{tabular}
+\end{table}
+
+Przebieg:
+\begin{itemize}
+\item Początkowo mamy dwa chromosomy (egzaminy) o określonych powyżej genach (uczestnikach).
+\item Następnie tworzymy z nich nowe chromosomy zamieniając poszczególne geny pierwotnych chromosomów.
+\end{itemize}
+\end{itemize}
+\section{Plan eksperymentów} 
+\subsection{Poprawność rozwiązań}
+Ważnym elementem będzie upewnienie się, że algorytm \underline{zawsze} znajduje rozwiązanie, jeśli takie istnieje. W tym celu dla odpowiednio dopasowanych danych będziemy weryfikować nie jakość rozwiązań, a ich słuszność.
+\subsection{Funkcja heurystyczna}
+Do przeprowadzenia eksperymentów wykorzystamy skrypty do generowania danych pseudolosowych o różnych rozmiarach. Dla poszczególnych danych zostaną wykonane serie testów mające na celu zbliżenie nas do ustalenia jak najlepszej funkcji heurystycznej.
+\subsection{Złożoność algorytmu}
+Ostatnim celem eksperymentów będzie optymalizacja krzyżowania czy selekcji, by algorytm nie tracił czasu, błądząc w miejscu.
+
+\end{document}
+
